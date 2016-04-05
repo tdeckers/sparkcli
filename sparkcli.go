@@ -10,9 +10,9 @@ import (
 )
 
 func main() {
-	config := util.Configuration{}
+	config := util.GetConfiguration()
 	config.Load()
-	client := util.NewClient(&config)
+	client := util.NewClient(config)
 	app := cli.NewApp()
 	app.Name = "sparkcli"
 	app.Usage = "Command Line Interface for Cisco Spark"
@@ -24,7 +24,7 @@ func main() {
 			Usage:   "login to Cisco Spark",
 			Action: func(c *cli.Context) {
 				log.Println("Logging in")
-				login := util.NewLogin(&config, client)
+				login := util.NewLogin(config, client)
 				login.Authorize()
 			},
 		},

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"github.com/tdeckers/sparkcli/util"
 	"log"
 )
@@ -32,6 +33,16 @@ func (m MessageService) list() (*[]Message, error) {
 
 // TODO: create different version, or update, to support direct msgs.
 func (m MessageService) Create(roomId string, txt string) (*Message, error) {
+	// Check for default roomId
+	config := util.GetConfiguration()
+	if roomId == "-" {
+		if config.DefaultRoomId != "" {
+			roomId = config.DefaultRoomId
+		} else {
+			return nil, errors.New("No default room id available.")
+		}
+	}
+
 	msg := Message{RoomId: roomId, Text: txt}
 	req, err := m.Client.NewPostRequest("/messages", msg)
 	if err != nil {

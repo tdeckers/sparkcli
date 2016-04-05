@@ -28,6 +28,17 @@ type Configuration struct {
 	AccessExpires  float64
 	RefreshToken   string
 	RefreshExpires float64
+	DefaultRoomId  string
+}
+
+// golang singletons: http://marcio.io/2015/07/singleton-pattern-in-go/
+var instance *Configuration
+
+func GetConfiguration() *Configuration {
+	if instance == nil {
+		instance = &Configuration{}
+	}
+	return instance
 }
 
 func (c *Configuration) Load() {
