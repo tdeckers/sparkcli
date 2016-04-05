@@ -68,6 +68,24 @@ func main() {
 					},
 				},
 				{
+					Name:  "get",
+					Usage: "get room details",
+					Action: func(c *cli.Context) {
+						if c.NArg() != 1 {
+							log.Fatal("Must provide room id")
+						}
+						id := c.Args().Get(0)
+						roomService := api.RoomService{Client: client}
+						room, err := roomService.Get(id)
+						if err != nil {
+							fmt.Println(err)
+							os.Exit(-1)
+						} else {
+							fmt.Printf("%s - ...", room.Title)
+						}
+					},
+				},
+				{
 					Name:  "delete",
 					Usage: "delete a room",
 					Action: func(c *cli.Context) {

@@ -55,6 +55,25 @@ func (r RoomService) Create(name string) (*Room, error) {
 	return &result, nil
 }
 
+func (r RoomService) Get(id string) (*Room, error) {
+	req, err := r.Client.NewGetRequest("/rooms/" + id)
+	if err != nil {
+		return nil, err
+	}
+	var result Room
+	res, err := r.Client.Do(req, &result)
+	if err != nil {
+		return nil, err
+	}
+	err = util.CheckStatusOk(res)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// TODO: add Update
+
 func (r RoomService) Delete(id string) error {
 	req, err := r.Client.NewDeleteRequest("/rooms/" + id)
 	if err != nil {
