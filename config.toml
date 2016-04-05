@@ -1,0 +1,3 @@
+ClientId = "<client id obtained from developer.ciscospark.com>"
+ClientSecret = "<client secret obtained from developer.ciscospark.com>"
+AuthCode = "<auth code obtained by logging in - see README.md for details>"
