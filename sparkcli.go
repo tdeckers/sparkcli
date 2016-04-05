@@ -122,6 +122,7 @@ func main() {
 					Name:  "create",
 					Usage: "create a new message",
 					Action: func(c *cli.Context) {
+						// TODO: change this to take all args after the second as additional text.
 						if c.NArg() != 2 {
 							log.Fatal("Usage: ... messages create <room> <msg>")
 						}

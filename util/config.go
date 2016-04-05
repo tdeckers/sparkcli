@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/user"
 )
 
 const (
@@ -30,6 +31,14 @@ type Configuration struct {
 }
 
 func (c *Configuration) Load() {
+	filepath := findConfigFile()
+	log.Printf("Using configuration at %s\n", filepath)
+
+	if _, err := toml.DecodeFile(filepath, &c); err != nil {
+		log.Fatalln("Failed to open file", err)
+		return
+	}
+
 	//TODO: check if empty after loading, else initalize
 	if c.RedirectUri == "" {
 		c.RedirectUri = redirectUrl
@@ -41,11 +50,33 @@ func (c *Configuration) Load() {
 		c.BaseUrl = baseUrl
 	}
 
-	if _, err := toml.DecodeFile("config.toml", &c); err != nil {
-		log.Fatalln("Failed to open file", err)
-		return
-	}
 	log.Println("File loaded for " + c.ClientId)
+}
+
+// TODO: support -c property?
+func findConfigFile() string {
+	// Prepare list of directories
+	user, err := user.Current()
+	if err != nil {
+		// TODO: don't fail here, just skip locations that require the user.
+		log.Fatal(err)
+	}
+
+	wd, _ := os.Getwd()
+
+	paths := []string{
+		wd, // current working directory
+		"/etc/sparkcli",
+		user.HomeDir, // users' home directory
+	}
+
+	for _, basepath := range paths {
+		path := basepath + string(os.PathSeparator) + "sparkcli.toml"
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+	return "sparkcli.toml"
 }
 
 func (c Configuration) save() {
