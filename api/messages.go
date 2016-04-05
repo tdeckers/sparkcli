@@ -39,7 +39,7 @@ func (m MessageService) Create(roomId string, txt string) (*Message, error) {
 		if config.DefaultRoomId != "" {
 			roomId = config.DefaultRoomId
 		} else {
-			return nil, errors.New("No default room id available.")
+			return nil, errors.New("No DefaultRoomId configured.")
 		}
 	}
 

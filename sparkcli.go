@@ -5,7 +5,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/tdeckers/sparkcli/api"
 	"github.com/tdeckers/sparkcli/util"
-	"log"
+	"log" // TODO: change to https://github.com/Sirupsen/logrus
 	"os"
 )
 

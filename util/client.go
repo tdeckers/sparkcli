@@ -78,6 +78,16 @@ func (c *Client) Do(req *http.Request, to interface{}) (*http.Response, error) {
 		return nil, err
 	}
 	defer res.Body.Close()
+	// If 401, let's try to refresh tokens and try again.
+	if res.StatusCode == 401 {
+		login := Login{config: c.config, client: c}
+		login.RefreshToken()
+		res, err = c.client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+	}
 	//	log.Printf("Response: %s", res.Status)
 	// TODO: check response code.  If 401, handle it!  See spark.go
 	// other errors should be handed downstream (incl. second 401)
