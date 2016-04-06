@@ -45,3 +45,9 @@ Inside the project directory, run:
 Add API key to .goxc.local.json
 
     goxc bintray
+
+#  TODO
+
+* travis builds
+* gocover.io
+* godoc creation

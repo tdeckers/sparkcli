@@ -7,6 +7,7 @@ import (
 	"github.com/tdeckers/sparkcli/util"
 	"log" // TODO: change to https://github.com/Sirupsen/logrus
 	"os"
+	"strings"
 )
 
 func main() {
@@ -123,11 +124,11 @@ func main() {
 					Usage: "create a new message",
 					Action: func(c *cli.Context) {
 						// TODO: change this to take all args after the second as additional text.
-						if c.NArg() != 2 {
+						if c.NArg() < 1 {
 							log.Fatal("Usage: ... messages create <room> <msg>")
 						}
 						room := c.Args().Get(0)
-						msgTxt := c.Args().Get(1)
+						msgTxt := strings.Join(c.Args().Tail(), " ")
 						msgService := api.MessageService{Client: client}
 						msg, err := msgService.Create(room, msgTxt)
 						if err != nil {
