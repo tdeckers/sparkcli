@@ -31,6 +31,12 @@ type Configuration struct {
 	DefaultRoomId  string
 }
 
+var configFile string
+
+func init() {
+	configFile = findConfigFile()
+}
+
 // golang singletons: http://marcio.io/2015/07/singleton-pattern-in-go/
 var instance *Configuration
 
@@ -42,10 +48,10 @@ func GetConfiguration() *Configuration {
 }
 
 func (c *Configuration) Load() {
-	filepath := findConfigFile()
-	log.Printf("Using configuration at %s\n", filepath)
+	//configFile := findConfigFile()
+	log.Printf("Using configuration at %s\n", configFile)
 
-	if _, err := toml.DecodeFile(filepath, &c); err != nil {
+	if _, err := toml.DecodeFile(configFile, &c); err != nil {
 		log.Fatalln("Failed to open file", err)
 		return
 	}
@@ -95,7 +101,7 @@ func (c Configuration) save() {
 	if err := toml.NewEncoder(buf).Encode(c); err != nil {
 		log.Fatalln("Failed to encode config", err)
 	}
-	f, err := os.Create("config.toml")
+	f, err := os.Create(configFile)
 	if err != nil {
 		log.Fatalln("Failed to create file", err)
 		return
