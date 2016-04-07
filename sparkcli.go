@@ -35,8 +35,9 @@ func main() {
 			Usage:   "operations on rooms",
 			Subcommands: []cli.Command{
 				{
-					Name:  "list",
-					Usage: "list all rooms",
+					Name:    "list",
+					Aliases: []string{"l"},
+					Usage:   "list all rooms",
 					Action: func(c *cli.Context) {
 						roomService := api.RoomService{Client: client}
 						rooms, err := roomService.List()
@@ -50,11 +51,12 @@ func main() {
 					},
 				},
 				{
-					Name:  "create",
-					Usage: "create a new room",
+					Name:    "create",
+					Aliases: []string{"c"},
+					Usage:   "create a new room",
 					Action: func(c *cli.Context) {
 						if c.NArg() != 1 {
-							log.Fatal("Must provide name for the new room")
+							log.Fatal("Usage: sparkcli room create <name>")
 						}
 						name := c.Args().Get(0)
 						roomService := api.RoomService{Client: client}
@@ -69,11 +71,12 @@ func main() {
 					},
 				},
 				{
-					Name:  "get",
-					Usage: "get room details",
+					Name:    "get",
+					Aliases: []string{"g"},
+					Usage:   "get room details",
 					Action: func(c *cli.Context) {
 						if c.NArg() != 1 {
-							log.Fatal("Must provide room id")
+							log.Fatal("Usage: sparkcli room get <id>")
 						}
 						id := c.Args().Get(0)
 						roomService := api.RoomService{Client: client}
@@ -87,11 +90,32 @@ func main() {
 					},
 				},
 				{
-					Name:  "delete",
-					Usage: "delete a room",
+					Name:    "update",
+					Aliases: []string{"u"},
+					Usage:   "update room details",
+					Action: func(c *cli.Context) {
+						if c.NArg() < 2 {
+							log.Fatal("Usage: sparkcli room update <id> <name>")
+						}
+						id := c.Args().Get(0)
+						name := strings.Join(c.Args().Tail(), " ")
+						roomService := api.RoomService{Client: client}
+						room, err := roomService.Update(id, name)
+						if err != nil {
+							fmt.Println(err)
+							os.Exit(-1)
+						} else {
+							fmt.Printf("%v", room.Id)
+						}
+					},
+				},
+				{
+					Name:    "delete",
+					Aliases: []string{"d"},
+					Usage:   "delete a room",
 					Action: func(c *cli.Context) {
 						if c.NArg() != 1 {
-							log.Fatal("Must provide id for room to delete")
+							log.Fatal("Usage: sparkcli room delete <id>")
 						}
 						id := c.Args().Get(0)
 						roomService := api.RoomService{Client: client}
@@ -103,7 +127,20 @@ func main() {
 						}
 					},
 				},
-				// TODO: secondary actions: exists? limit list, ...
+				// Secondary actions (not part of native Spark API)
+				{
+					Name:  "default",
+					Usage: "save default room to config",
+					Action: func(c *cli.Context) {
+						if c.NArg() != 1 {
+							log.Fatal("Usage: sparkcli room default <id>")
+						}
+						id := c.Args().Get(0)
+						config.DefaultRoomId = id
+						config.Save()
+						fmt.Printf("Default room set to %v", id)
+					},
+				},
 			},
 		},
 		{
@@ -112,20 +149,33 @@ func main() {
 			Usage:   "operations on messages",
 			Subcommands: []cli.Command{
 				{
-					Name:  "list",
-					Usage: "list all messages",
+					Name:    "list",
+					Aliases: []string{"l"},
+					Usage:   "list all messages",
 					Action: func(c *cli.Context) {
-						// msgService := MessageService{client: client}
-						log.Fatal("Not implemented")
+						if c.NArg() != 1 {
+							log.Fatal("Usage: sparkcli messages list <roomId>")
+						}
+						roomId := c.Args().Get(0)
+						msgService := api.MessageService{Client: client}
+						msgs, err := msgService.List(roomId)
+						if err != nil {
+							fmt.Println(err)
+						} else {
+							for _, msg := range *msgs {
+								fmt.Printf("[%v] %v: %v\n", msg.Created, msg.PersonEmail, msg.Text)
+							}
+						}
 					},
 				},
 				{
-					Name:  "create",
-					Usage: "create a new message",
+					Name:    "create",
+					Aliases: []string{"c"},
+					Usage:   "create a new message",
 					Action: func(c *cli.Context) {
 						// TODO: change this to take all args after the second as additional text.
 						if c.NArg() < 1 {
-							log.Fatal("Usage: ... messages create <room> <msg>")
+							log.Fatal("Usage: sparkcli messages create <room> <msg>")
 						}
 						room := c.Args().Get(0)
 						msgTxt := strings.Join(c.Args().Tail(), " ")

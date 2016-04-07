@@ -97,7 +97,7 @@ func findConfigFile() string {
 	return "sparkcli.toml"
 }
 
-func (c Configuration) save() {
+func (c Configuration) Save() {
 	buf := new(bytes.Buffer)
 	if err := toml.NewEncoder(buf).Encode(c); err != nil {
 		log.Fatalln("Failed to encode config", err)

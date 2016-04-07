@@ -121,7 +121,7 @@ func (l Login) storeToken(tokens *Tokens) {
 	// typically 90 days
 	l.config.RefreshExpires = tokens.RefreshExpires
 	log.Println("Saving config")
-	l.config.save()
+	l.config.Save()
 
 }
 

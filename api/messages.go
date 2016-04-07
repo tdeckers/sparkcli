@@ -31,6 +31,19 @@ func (m MessageService) list() (*[]Message, error) {
 	return nil, nil
 }
 
+func (m MessageService) List(roomId string) (*[]Message, error) {
+	req, err := m.Client.NewGetRequest("/messages?roomId=" + roomId)
+	if err != nil {
+		return nil, err
+	}
+	var result MessageItems
+	_, err = m.Client.Do(req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result.Items, nil
+}
+
 // TODO: create different version, or update, to support direct msgs.
 func (m MessageService) Create(roomId string, txt string) (*Message, error) {
 	// Check for default roomId

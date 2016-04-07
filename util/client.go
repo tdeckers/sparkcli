@@ -68,6 +68,10 @@ func (c *Client) NewPostRequest(path string, body interface{}) (*http.Request, e
 	return c.NewRequest("POST", path, body)
 }
 
+func (c *Client) NewPutRequest(path string, body interface{}) (*http.Request, error) {
+	return c.NewRequest("PUT", path, body)
+}
+
 func (c *Client) NewDeleteRequest(path string) (*http.Request, error) {
 	return c.NewRequest("DELETE", path, nil)
 }

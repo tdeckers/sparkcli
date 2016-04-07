@@ -60,7 +60,19 @@ func (r RoomService) Get(id string) (*Room, error) {
 	return &result, nil
 }
 
-// TODO: add Update
+func (r RoomService) Update(id string, name string) (*Room, error) {
+	room := Room{Title: name}
+	req, err := r.Client.NewPutRequest("/rooms/"+id, room)
+	if err != nil {
+		return nil, err
+	}
+	var result Room
+	_, err = r.Client.Do(req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
 
 func (r RoomService) Delete(id string) error {
 	req, err := r.Client.NewDeleteRequest("/rooms/" + id)

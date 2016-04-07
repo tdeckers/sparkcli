@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/tdeckers/sparkcli.svg?branch=master)](https://travis-ci.org/tdeckers/sparkcli)
+
 # Overview
 
 sparkcli (say 'sparkly' :) is a command line interface to Cisco Spark.
