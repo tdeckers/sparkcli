@@ -26,11 +26,7 @@ func (p PeopleService) GetMe() (*People, error) {
 		return nil, err
 	}
 	var result People
-	res, err := p.Client.Do(req, &result)
-	if err != nil {
-		return nil, err
-	}
-	err = util.CheckStatusOk(res)
+	_, err = p.Client.Do(req, &result)
 	if err != nil {
 		return nil, err
 	}

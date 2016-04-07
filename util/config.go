@@ -13,7 +13,8 @@ import (
 const (
 	redirectUrl = "http://files.ducbase.com/code.html"
 	scope       = "spark:people_read spark:rooms_read spark:rooms_write " +
-		"spark:messages_read spark:messages_write"
+		"spark:messages_read spark:messages_write spark:memberships_read " +
+		"spark:memberships_write"
 	baseUrl = "https://api.ciscospark.com/v1"
 )
 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Sparkcli Authorization code</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+</head>
+<body>
+<div class="container">
+	<h1>Sparkcli Authorization</h1>
+	<p>Use the Client Id you got from <a href="https://developer.ciscospark.com/apps.html" target="_blank">developer.ciscospark.com</a>
+	to start the authorization process.
+	</p>
+	<div id="auth">
+	<form>
+		<div class="form-group">
+			<label for="inputId">Cisco Spark Client Id</label>
+			<input type="text" id="inputId" class="form-control" placeholder="e.g. C55d78f22b9ed54b348897d30c8465f694e7e0d68acd38a86c697443bdef62784">
+		</div>
+		<button id="btnAuthorize" type="submit" class="btn btn-default">Authorize</button>
+	</form>
+	</div>
+	<div id="result" class="hidden">
+		Click on the link below to get an authorization code:<br /> <span id='url'></span>
+	</div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+<script>
+
+$( document ).ready(function() {
+    // don't need to do anything.
+});
+
+$("#btnAuthorize").on("click", function(e){
+	e.preventDefault();
+	$("#auth").toggleClass("hidden");
+	var url = "https://api.ciscospark.com/v1/authorize?";
+	url += encodeURIComponent("response_type=code");
+	url += encodeURIComponent("&client_id="+$("#inputId").val());
+	url += encodeURIComponent("&redirect_uri=http://files.ducbase.com/code.html");
+	url += encodeURIComponent("&scope=spark:people_read spark:rooms_read spark:rooms_write " +
+		"spark:messages_read spark:messages_write spark:memberships_read " +
+		"spark:memberships_write");
+	$("#url").html("<a href='" + url + "'>" + url + "</a>")
+	$("#result").toggleClass("hidden");
+	});
+</script>
+
+</body>
+</html>

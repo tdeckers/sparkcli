@@ -88,9 +88,11 @@ func (c *Client) Do(req *http.Request, to interface{}) (*http.Response, error) {
 		}
 		defer res.Body.Close()
 	}
-	//	log.Printf("Response: %s", res.Status)
-	// TODO: check response code.  If 401, handle it!  See spark.go
-	// other errors should be handed downstream (incl. second 401)
+	err = checkStatusOk(res)
+	if err != nil {
+		log.Printf("Status: %s", res.Status)
+		return nil, err
+	}
 	if to != nil {
 		decoder := json.NewDecoder(res.Body)
 		err = decoder.Decode(&to)
@@ -102,7 +104,7 @@ func (c *Client) Do(req *http.Request, to interface{}) (*http.Response, error) {
 }
 
 // error if status code is not in 2XX range
-func CheckStatusOk(res *http.Response) error {
+func checkStatusOk(res *http.Response) error {
 	if 200 < res.StatusCode && res.StatusCode > 299 {
 		// TODO: if 400 message, parse body and get actual message
 		// {

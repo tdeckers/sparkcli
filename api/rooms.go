@@ -26,11 +26,7 @@ func (r RoomService) List() (*[]Room, error) {
 		return nil, err
 	}
 	var result RoomItems
-	res, err := r.Client.Do(req, &result)
-	if err != nil {
-		return nil, err
-	}
-	err = util.CheckStatusOk(res)
+	_, err = r.Client.Do(req, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -44,11 +40,7 @@ func (r RoomService) Create(name string) (*Room, error) {
 		return nil, err
 	}
 	var result Room
-	res, err := r.Client.Do(req, &result)
-	if err != nil {
-		return nil, err
-	}
-	err = util.CheckStatusOk(res)
+	_, err = r.Client.Do(req, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -61,11 +53,7 @@ func (r RoomService) Get(id string) (*Room, error) {
 		return nil, err
 	}
 	var result Room
-	res, err := r.Client.Do(req, &result)
-	if err != nil {
-		return nil, err
-	}
-	err = util.CheckStatusOk(res)
+	_, err = r.Client.Do(req, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +67,9 @@ func (r RoomService) Delete(id string) error {
 	if err != nil {
 		return err
 	}
-	res, err := r.Client.Do(req, nil)
+	_, err = r.Client.Do(req, nil)
 	if err != nil {
 		return err
 	}
-	err = util.CheckStatusOk(res)
-	return err
+	return nil //success
 }

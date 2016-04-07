@@ -49,11 +49,7 @@ func (m MessageService) Create(roomId string, txt string) (*Message, error) {
 		return nil, err
 	}
 	var result Message
-	res, err := m.Client.Do(req, &result)
-	if err != nil {
-		return nil, err
-	}
-	err = util.CheckStatusOk(res)
+	_, err = m.Client.Do(req, &result)
 	if err != nil {
 		return nil, err
 	}
