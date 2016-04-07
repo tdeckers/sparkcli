@@ -140,7 +140,7 @@ func (l Login) test() error {
 	}
 	if res.StatusCode != 200 {
 		// TODO: what should we do in case of another error while testing?
-		log.Printf("Got response code %s while testing.", res.StatusCode)
+		log.Printf("Got response code %v while testing.", res.StatusCode)
 	}
 	return nil
 }
