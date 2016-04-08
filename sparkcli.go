@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/tdeckers/sparkcli/api"
@@ -56,7 +57,7 @@ func main() {
 					Usage:   "create a new room",
 					Action: func(c *cli.Context) {
 						if c.NArg() != 1 {
-							log.Fatal("Usage: sparkcli room create <name>")
+							log.Fatal("Usage: sparkcli rooms create <name>")
 						}
 						name := c.Args().Get(0)
 						roomService := api.RoomService{Client: client}
@@ -75,37 +76,27 @@ func main() {
 					Aliases: []string{"g"},
 					Usage:   "get room details",
 					Action: func(c *cli.Context) {
-						if c.NArg() != 1 {
-							log.Fatal("Usage: sparkcli room get <id>")
+						if c.NArg() > 1 {
+							log.Fatal("Usage: sparkcli rooms get <id>")
 						}
 						id := c.Args().Get(0)
+						if id == "" { // try default room
+							id = config.DefaultRoomId
+							if id == "" {
+								log.Fatal("Usage: sparkcli rooms get <id> (no default room configured)")
+							}
+						}
 						roomService := api.RoomService{Client: client}
 						room, err := roomService.Get(id)
 						if err != nil {
 							fmt.Println(err)
 							os.Exit(-1)
 						} else {
-							fmt.Printf("%s - ...", room.Title)
-						}
-					},
-				},
-				{
-					Name:    "update",
-					Aliases: []string{"u"},
-					Usage:   "update room details",
-					Action: func(c *cli.Context) {
-						if c.NArg() < 2 {
-							log.Fatal("Usage: sparkcli room update <id> <name>")
-						}
-						id := c.Args().Get(0)
-						name := strings.Join(c.Args().Tail(), " ")
-						roomService := api.RoomService{Client: client}
-						room, err := roomService.Update(id, name)
-						if err != nil {
-							fmt.Println(err)
-							os.Exit(-1)
-						} else {
-							fmt.Printf("%v", room.Id)
+							jsonMsg, err := json.MarshalIndent(room, "", "  ")
+							if err != nil {
+								log.Fatal("Failed to convert room.")
+							}
+							fmt.Print(string(jsonMsg))
 						}
 					},
 				},
@@ -115,11 +106,12 @@ func main() {
 					Usage:   "delete a room",
 					Action: func(c *cli.Context) {
 						if c.NArg() != 1 {
-							log.Fatal("Usage: sparkcli room delete <id>")
+							log.Fatal("Usage: sparkcli rooms delete <id>")
 						}
 						id := c.Args().Get(0)
 						roomService := api.RoomService{Client: client}
 						err := roomService.Delete(id)
+						//TODO: if error is '400 Bad Request', try deleting by name?
 						if err != nil {
 							fmt.Println(err)
 						} else {
@@ -127,18 +119,20 @@ func main() {
 						}
 					},
 				},
-				// Secondary actions (not part of native Spark API)
+				// Convenience actions (not available in Cisco Spark API)
 				{
 					Name:  "default",
-					Usage: "save default room to config",
+					Usage: "save default room in config",
 					Action: func(c *cli.Context) {
-						if c.NArg() != 1 {
-							log.Fatal("Usage: sparkcli room default <id>")
+						if c.NArg() > 1 {
+							log.Fatal("Usage: sparkcli rooms default (<id>)")
 						}
-						id := c.Args().Get(0)
-						config.DefaultRoomId = id
-						config.Save()
-						fmt.Printf("Default room set to %v", id)
+						if c.NArg() == 1 {
+							id := c.Args().Get(0)
+							config.DefaultRoomId = id
+						} else {
+							fmt.Print(config.DefaultRoomId)
+						}
 					},
 				},
 			},
@@ -153,12 +147,20 @@ func main() {
 					Aliases: []string{"l"},
 					Usage:   "list all messages",
 					Action: func(c *cli.Context) {
-						if c.NArg() != 1 {
+						// If no arg provided, also use default room.
+						if c.NArg() > 1 {
 							log.Fatal("Usage: sparkcli messages list <roomId>")
 						}
-						roomId := c.Args().Get(0)
+						id := c.Args().Get(0)
+						if id == "" || id == "-" {
+							id = config.DefaultRoomId
+							if id == "" {
+								log.Println("No default room configured.")
+								log.Fatal("Usage: sparkcli messages list <roomId>")
+							}
+						}
 						msgService := api.MessageService{Client: client}
-						msgs, err := msgService.List(roomId)
+						msgs, err := msgService.List(id)
 						if err != nil {
 							fmt.Println(err)
 						} else {
@@ -187,9 +189,57 @@ func main() {
 						} else {
 							fmt.Print(msg.Id)
 						}
-
 					},
 				},
+				{
+					Name:    "get",
+					Aliases: []string{"g"},
+					Usage:   "get message details",
+					Action: func(c *cli.Context) {
+						if c.NArg() != 1 {
+							log.Fatal("Usage: sparkcli messages get <id>")
+						}
+						id := c.Args().Get(0)
+						msgService := api.MessageService{Client: client}
+						msg, err := msgService.Get(id)
+						if err != nil {
+							fmt.Println(err)
+							os.Exit(-1)
+						} else {
+							jsonMsg, err := json.MarshalIndent(msg, "", "  ")
+							if err != nil {
+								log.Fatal("Failed to convert message.")
+							}
+							fmt.Print(string(jsonMsg))
+						}
+					},
+				},
+				{
+					Name:    "delete",
+					Aliases: []string{"d"},
+					Usage:   "delete a message",
+					Action: func(c *cli.Context) {
+						if c.NArg() != 1 {
+							log.Fatal("Usage: sparkcli messages delete <id>")
+						}
+						id := c.Args().Get(0)
+						msgService := api.MessageService{Client: client}
+						err := msgService.Delete(id)
+						if err != nil {
+							fmt.Println(err)
+						} else {
+							fmt.Print("Message deleted.")
+						}
+					},
+				},
+			},
+		},
+		{
+			Name:    "people",
+			Aliases: []string{"p"},
+			Usage:   "operations on people",
+			Subcommands: []cli.Command{
+				{},
 			},
 		},
 	}

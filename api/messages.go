@@ -68,3 +68,34 @@ func (m MessageService) Create(roomId string, txt string) (*Message, error) {
 	}
 	return &result, nil
 }
+
+func (m MessageService) Get(id string) (*Message, error) {
+	if id == "" {
+		return nil, errors.New("id can't be empty when getting message")
+	}
+	req, err := m.Client.NewGetRequest("/messages/" + id)
+	if err != nil {
+		return nil, err
+	}
+	var result Message
+	_, err = m.Client.Do(req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (m MessageService) Delete(id string) error {
+	if id == "" {
+		return errors.New("id can't be empty when deleting a message")
+	}
+	req, err := m.Client.NewDeleteRequest("/messages/" + id)
+	if err != nil {
+		return err
+	}
+	_, err = m.Client.Do(req, nil)
+	if err != nil {
+		return err
+	}
+	return nil //success
+}
