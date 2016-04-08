@@ -130,6 +130,7 @@ func main() {
 						if c.NArg() == 1 {
 							id := c.Args().Get(0)
 							config.DefaultRoomId = id
+							config.Save()
 						} else {
 							fmt.Print(config.DefaultRoomId)
 						}
@@ -239,12 +240,204 @@ func main() {
 			Aliases: []string{"p"},
 			Usage:   "operations on people",
 			Subcommands: []cli.Command{
-				{},
+				{
+					Name:    "get",
+					Aliases: []string{"g"},
+					Usage:   "get your details",
+					Action: func(c *cli.Context) {
+						id := "me"
+						if c.NArg() == 1 { // if argument, use that as id
+							id = c.Args().Get(0)
+						}
+						peopleService := api.PeopleService{Client: client}
+						person, err := peopleService.Get(id)
+						if err != nil {
+							fmt.Println(err)
+						} else {
+							jsonPerson, err := json.MarshalIndent(person, "", "  ")
+							if err != nil {
+								log.Fatal("Faild to convert person")
+							}
+							fmt.Print(string(jsonPerson))
+
+						}
+
+					},
+				},
+				{
+					Name:    "list",
+					Aliases: []string{"l"},
+					Usage:   "list people",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "email",
+						},
+						cli.StringFlag{
+							Name: "name",
+						},
+					},
+					Action: func(c *cli.Context) {
+						email := c.String("email")
+						name := c.String("name")
+						peopleService := api.PeopleService{Client: client}
+						people, err := peopleService.List(email, name)
+						if err != nil {
+							fmt.Println(err)
+						} else {
+							for _, person := range *people {
+								fmt.Printf("%v (%v)\n", person.DisplayName, person.Emails[0])
+							}
+
+						}
+					},
+				},
+			},
+		},
+		{
+			Name:    "memberships",
+			Aliases: []string{"ms"},
+			Usage:   "operations on memberships",
+			Subcommands: []cli.Command{
+				{
+					Name:    "list",
+					Aliases: []string{"l"},
+					Usage:   "list memberships",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "room",
+						},
+						cli.StringFlag{
+							Name: "personid",
+						},
+						cli.StringFlag{
+							Name: "email",
+						},
+					},
+					Action: func(c *cli.Context) {
+						roomId := c.String("room")
+						personId := c.String("personid")
+						personEmail := c.String("email")
+						memberService := api.MemberService{Client: client}
+						mss, err := memberService.List(roomId, personId, personEmail)
+						if err != nil {
+							fmt.Println(err)
+						} else {
+							for _, ms := range *mss {
+								fmt.Printf("%v: %v\n", ms.PersonEmail, ms.RoomId)
+							}
+
+						}
+					},
+				},
+				{
+					Name:    "create",
+					Aliases: []string{"c"},
+					Usage:   "create memberships",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name: "room",
+						},
+						cli.StringFlag{
+							Name: "personid",
+						},
+						cli.StringFlag{
+							Name: "email",
+						},
+					},
+					Action: func(c *cli.Context) {
+						roomId := c.String("room")
+						personId := c.String("personid")
+						personEmail := c.String("email")
+						memberService := api.MemberService{Client: client}
+						ms, err := memberService.Create(roomId, personId, personEmail)
+						if err != nil {
+							fmt.Println(err)
+						} else {
+							jsonMs, err := json.MarshalIndent(ms, "", "  ")
+							if err != nil {
+								log.Fatal("Faild to convert membership")
+							}
+							fmt.Print(string(jsonMs))
+						}
+
+					},
+				},
+				{
+					Name:    "get",
+					Aliases: []string{"g"},
+					Usage:   "get membership details",
+					Action: func(c *cli.Context) {
+						if c.NArg() != 1 {
+							log.Fatal("Usage: sparkcli memberships get <id>")
+						}
+						id := c.Args().Get(0)
+						msService := api.MemberService{Client: client}
+						ms, err := msService.Get(id)
+						if err != nil {
+							fmt.Println(err)
+							os.Exit(-1)
+						} else {
+							jsonMs, err := json.MarshalIndent(ms, "", "  ")
+							if err != nil {
+								log.Fatal("Failed to convert membership.")
+							}
+							fmt.Print(string(jsonMs))
+						}
+
+					},
+				},
+				{
+					Name:    "update",
+					Aliases: []string{"u"},
+					Usage:   "update membership",
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name: "mod",
+						},
+					},
+					Action: func(c *cli.Context) {
+						if c.NArg() != 1 {
+							log.Fatal("Usage: sparkcli memberships update -mod <id>")
+						}
+						id := c.Args().Get(0)
+						// TODO: avoid doing update if flag is not present.
+						moderator := c.Bool("mod")
+						msService := api.MemberService{Client: client}
+						ms, err := msService.Update(id, moderator)
+						if err != nil {
+							fmt.Print(err)
+							os.Exit(-1)
+						} else {
+							jsonMs, err := json.MarshalIndent(ms, "", "  ")
+							if err != nil {
+								log.Fatal("Failed to convert membership.")
+							}
+							fmt.Print(string(jsonMs))
+						}
+					},
+				},
+				{
+					Name:    "delete",
+					Aliases: []string{"d"},
+					Usage:   "delete membership",
+					Action: func(c *cli.Context) {
+						if c.NArg() != 1 {
+							log.Fatal("Usage: sparkcli memberships delete <id>")
+						}
+						id := c.Args().Get(0)
+						msService := api.MemberService{Client: client}
+						err := msService.Delete(id)
+						if err != nil {
+							fmt.Print(err)
+							os.Exit(-1)
+						} else {
+							fmt.Println("Membership deleted.")
+						}
+
+					},
+				},
 			},
 		},
 	}
-	//	app.Action = func(c *cli.Context) {
-	//		log.Println("Greetings")
-	//	}
 	app.Run(os.Args)
 }

@@ -111,24 +111,22 @@ func (c *Client) Do(req *http.Request, to interface{}) (*http.Response, error) {
 // error if status code is not in 2XX range
 func checkStatusOk(res *http.Response) error {
 	if 200 < res.StatusCode && res.StatusCode > 299 {
-		if res.StatusCode == 400 { // Get more info from the body.
-			// {
-			//	"message": "Failed to create room.",
-			//	"errors": [
-			//		{
-			//			"description": "Failed to create room."
-			//		}
-			//	],
-			//	"trackingId": "NA_f6e19aac-3a72-46d2-88ec-643f4d12fcbd"
-			//}
-			body, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				return errors.New(res.Status + " - " + err.Error())
-			} else {
-				return errors.New(res.Status + "\n" + string(body))
-			}
+		// Read the body.  For some HTTP codes there's more info (e.g. 401)
+		// {
+		//	"message": "Failed to create room.",
+		//	"errors": [
+		//		{
+		//			"description": "Failed to create room."
+		//		}
+		//	],
+		//	"trackingId": "NA_f6e19aac-3a72-46d2-88ec-643f4d12fcbd"
+		//}
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return errors.New(res.Status + " - " + err.Error())
+		} else {
+			return errors.New(res.Status + "\n" + string(body))
 		}
-		return errors.New(res.Status)
 	}
 	return nil
 }

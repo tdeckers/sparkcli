@@ -48,10 +48,10 @@ $("#btnAuthorize").on("click", function(e){
 	e.preventDefault();
 	$("#auth").toggleClass("hidden");
 	var url = "https://api.ciscospark.com/v1/authorize?";
-	url += encodeURIComponent("response_type=code");
-	url += encodeURIComponent("&client_id="+$("#inputId").val());
-	url += encodeURIComponent("&redirect_uri=http://files.ducbase.com/code.html");
-	url += encodeURIComponent("&scope=spark:people_read spark:rooms_read spark:rooms_write " +
+	url += "response_type=code&";
+	url += "client_id=" + encodeURIComponent($("#inputId").val()) + "&";
+	url += "redirect_uri=" + encodeURIComponent("http://files.ducbase.com/code.html") + "&";
+	url += "scope=" + encodeURIComponent("spark:people_read spark:rooms_read spark:rooms_write " +
 		"spark:messages_read spark:messages_write spark:memberships_read " +
 		"spark:memberships_write");
 	$("#url").html("<a href='" + url + "'>" + url + "</a>")
