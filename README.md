@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/tdeckers/sparkcli.svg?branch=master)](https://travis-ci.org/tdeckers/sparkcli)
+[![Build Status](https://travis-ci.org/tdeckers/sparkcli.svg?branch=master)](https://travis-ci.org/tdeckers/sparkcli) [ ![Download](https://api.bintray.com/packages/tdeckers/sparkcli/sparkcli/images/download.svg) ](https://bintray.com/tdeckers/sparkcli/sparkcli/_latestVersion)
 
 # Overview
 
@@ -42,7 +42,7 @@ Add the `ClientID`, `ClientSecret` and the `AuthCode` from the previous steps in
 
 **4. Login**
 
-Download a copy of sparkcli [here](https://bintray.com/tdeckers/sparkcli/sparkcli#files).
+Download a copy of sparkcli:  [ ![Download](https://api.bintray.com/packages/tdeckers/sparkcli/sparkcli/images/download.svg) ](https://bintray.com/tdeckers/sparkcli/sparkcli/_latestVersion).
 Then run
 
     sparkcli login
@@ -58,19 +58,112 @@ and restart from step 2 above._
 
 # Usage
 
-Download 
+You'll notice that most commands have a short hand script which is listed below 
+the long version
 
-For help:
+## Global arguments
 
     sparkcli -h
 
-Examples
+> Get help
 
-    # List rooms
-    sparkcli room list
+    sparkcli -j=false ...
+
+> Formats the results (if any) in a human readable format.  If this options is 
+> set to true or not present the return value(s) as JSON.
+
+## Rooms
+
+List all rooms
+
+    sparkcli rooms list
+    sparkcli r l
+
+> Lists all rooms you're subscribed too.
+
+Create room
+
+    sparkcli rooms create <name>
+    sparkcli r c <name>
+
+> Creates a room with the name specified.  The room name can include multiple words. 
+> If -j=false, only the room id is printed so it can be assigned to a variable.
+
+Get a specific room
+
+    sparkcli rooms get <id>
+    sparkcli r g <id>
     
-    # Send message to a room
-    sparkcli message create <roomid> <msg>
+    # using the default room
+    sparkcli r g
+
+> Gets details for the room.  If no id is provided, this command uses the default 
+> room id if one is available in the config.  See how to set a default room in 
+> the config later.
+
+Delete a room
+
+    sparkcli rooms delete <id>
+    sparkcli r d <id>
+
+> Deletes the room.
+
+Set the default room
+
+    sparkcli rooms default <id>
+    
+    # no short for default!
+    sparkcli r default <id> 
+
+> Saves a default room id to the config for use in other operations that support it.
+> This won't check if the room actually exists. If no id is provided, this will 
+> just diplay the saved room id.
+
+## Messages
+
+List messages
+
+    sparkcli messages list <roomid>
+    sparkcli m l <roomid>
+    
+    # to use the default room
+    sparkcli m l
+
+> List the messages for a given room.  If no room id is provided, the default room
+> will be used if one exists.
+
+Create message
+
+    sparkcli messages create <roomid> <msg>
+    sparkcli m c <roomid> <msg>
+    
+    # to post in the default room
+    sparkcli m c - <msg>
+    
+> Creates a message is the specified room.  For posting to the default room, use
+> a dash (-).
+
+Get a message
+
+    sparkcli messages get <id>
+    sparkcli m g <id>
+    
+> Gets a messages' details.
+
+Delete a message
+
+    sparkcli messages delete <id>
+    sparkcli m d <id>
+
+> Deletes a messages.
+
+## Other
+
+Login
+
+    sparkcli login
+
+> Logs you into the Cisco Spark service, and stores access tokens on success.
 
 # Development
 

@@ -12,6 +12,8 @@ import (
 )
 
 func main() {
+	var jsonFlag bool
+
 	config := util.GetConfiguration()
 	config.Load()
 	client := util.NewClient(config)
@@ -19,6 +21,13 @@ func main() {
 	app.Name = "sparkcli"
 	app.Usage = "Command Line Interface for Cisco Spark"
 	app.Version = "0.0.1"
+	app.Flags = []cli.Flag{
+		cli.BoolTFlag{
+			Name:        "j",
+			Usage:       "return results as json",
+			Destination: &jsonFlag,
+		},
+	}
 	app.Commands = []cli.Command{
 		{
 			Name:    "login",
@@ -43,10 +52,16 @@ func main() {
 						roomService := api.RoomService{Client: client}
 						rooms, err := roomService.List()
 						if err != nil {
-							fmt.Println(err)
+							log.Fatalln(err)
 						} else {
-							for _, room := range *rooms {
-								fmt.Printf("%s: %s\n", room.Id, room.Title)
+							if jsonFlag {
+								util.PrintJson(rooms)
+							} else {
+								// TODO: should I calculate room id length somehow?
+								fmt.Print("Id" + strings.Repeat(" ", 76) + "Title\n")
+								for _, room := range *rooms {
+									fmt.Printf("%s: %s\n", room.Id, room.Title)
+								}
 							}
 						}
 					},
@@ -63,11 +78,14 @@ func main() {
 						roomService := api.RoomService{Client: client}
 						room, err := roomService.Create(name)
 						if err != nil {
-							fmt.Println(err)
-							os.Exit(-1)
+							log.Fatalln(err)
 						} else {
-							// Print just roomId, so can assign to env variable if desired.
-							fmt.Print(room.Id)
+							if jsonFlag {
+								util.PrintJson(room)
+							} else {
+								// Print just roomId, so can assign to env variable if desired.
+								fmt.Print(room.Id)
+							}
 						}
 					},
 				},
@@ -89,14 +107,16 @@ func main() {
 						roomService := api.RoomService{Client: client}
 						room, err := roomService.Get(id)
 						if err != nil {
-							fmt.Println(err)
-							os.Exit(-1)
+							log.Fatalln(err)
 						} else {
-							jsonMsg, err := json.MarshalIndent(room, "", "  ")
-							if err != nil {
-								log.Fatal("Failed to convert room.")
+							if jsonFlag {
+								util.PrintJson(room)
+							} else {
+								fmt.Printf("Id:          %s\n", room.Id)
+								fmt.Printf("Title:       %s\n", room.Title)
+								fmt.Printf("Sip Address: %s\n", room.SipAddress)
+								fmt.Printf("Created:     %s\n", room.Created)
 							}
-							fmt.Print(string(jsonMsg))
 						}
 					},
 				},
@@ -113,9 +133,12 @@ func main() {
 						err := roomService.Delete(id)
 						//TODO: if error is '400 Bad Request', try deleting by name?
 						if err != nil {
-							fmt.Println(err)
+							log.Fatalln(err)
 						} else {
-							fmt.Println("Room deleted.")
+							if !jsonFlag {
+								fmt.Println("Room deleted.")
+							}
+							// when json, just return empty.  Exit code will tell it's ok.
 						}
 					},
 				},
@@ -132,6 +155,7 @@ func main() {
 							config.DefaultRoomId = id
 							config.Save()
 						} else {
+							// just display the room id
 							fmt.Print(config.DefaultRoomId)
 						}
 					},
@@ -148,12 +172,13 @@ func main() {
 					Aliases: []string{"l"},
 					Usage:   "list all messages",
 					Action: func(c *cli.Context) {
+						// TODO: add limiters (num, before, beforeMessage)
 						// If no arg provided, also use default room.
 						if c.NArg() > 1 {
-							log.Fatal("Usage: sparkcli messages list <roomId>")
+							log.Fatal("Usage: sparkcli messages list <roomid>")
 						}
 						id := c.Args().Get(0)
-						if id == "" || id == "-" {
+						if id == "" {
 							id = config.DefaultRoomId
 							if id == "" {
 								log.Println("No default room configured.")
@@ -163,10 +188,14 @@ func main() {
 						msgService := api.MessageService{Client: client}
 						msgs, err := msgService.List(id)
 						if err != nil {
-							fmt.Println(err)
+							log.Fatalln(err)
 						} else {
-							for _, msg := range *msgs {
-								fmt.Printf("[%v] %v: %v\n", msg.Created, msg.PersonEmail, msg.Text)
+							if jsonFlag {
+								util.PrintJson(msgs)
+							} else {
+								for _, msg := range *msgs {
+									fmt.Printf("[%v] %v: %v\n", msg.Created, msg.PersonEmail, msg.Text)
+								}
 							}
 						}
 					},
@@ -180,15 +209,26 @@ func main() {
 						if c.NArg() < 1 {
 							log.Fatal("Usage: sparkcli messages create <room> <msg>")
 						}
-						room := c.Args().Get(0)
+						id := c.Args().Get(0)
+						if id == "-" {
+							id = config.DefaultRoomId
+							if id == "" {
+								log.Println("No default room configured.")
+								log.Fatal("Usage: sparkcli messages list <roomId>")
+							}
+						}
+
 						msgTxt := strings.Join(c.Args().Tail(), " ")
 						msgService := api.MessageService{Client: client}
-						msg, err := msgService.Create(room, msgTxt)
+						msg, err := msgService.Create(id, msgTxt)
 						if err != nil {
-							fmt.Println(err)
-							os.Exit(-1)
+							log.Fatalln(err)
 						} else {
-							fmt.Print(msg.Id)
+							if jsonFlag {
+								util.PrintJson(msg)
+							} else {
+								fmt.Print(msg.Id)
+							}
 						}
 					},
 				},
@@ -204,14 +244,20 @@ func main() {
 						msgService := api.MessageService{Client: client}
 						msg, err := msgService.Get(id)
 						if err != nil {
-							fmt.Println(err)
-							os.Exit(-1)
+							log.Fatalln(err)
 						} else {
-							jsonMsg, err := json.MarshalIndent(msg, "", "  ")
-							if err != nil {
-								log.Fatal("Failed to convert message.")
+							if jsonFlag {
+								util.PrintJson(msg)
+							} else {
+								fmt.Printf("Id:            %s\n", msg.Id)
+								fmt.Printf("PersonId:      %s\n", msg.PersonId)
+								fmt.Printf("PersonEmail:   %s\n", msg.PersonEmail)
+								fmt.Printf("RoomId:        %s\n", msg.RoomId)
+								fmt.Printf("Text:          %s\n", msg.Text)
+								fmt.Printf("ToPersonId:    %s\n", msg.ToPersonId)
+								fmt.Printf("ToPersonEmail: %s\n", msg.ToPersonEmail)
+								fmt.Printf("Created:       %s\n", msg.Created)
 							}
-							fmt.Print(string(jsonMsg))
 						}
 					},
 				},
@@ -227,9 +273,11 @@ func main() {
 						msgService := api.MessageService{Client: client}
 						err := msgService.Delete(id)
 						if err != nil {
-							fmt.Println(err)
+							log.Fatalln(err)
 						} else {
-							fmt.Print("Message deleted.")
+							if !jsonFlag {
+								fmt.Print("Message deleted.")
+							} // for json, don't print.  Exit code = 0.
 						}
 					},
 				},

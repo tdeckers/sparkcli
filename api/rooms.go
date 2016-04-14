@@ -10,7 +10,8 @@ type RoomService struct {
 
 type Room struct {
 	Id           string `json:"id,omitempty"`
-	Title        string `json:"title"`
+	Title        string `json:"title,omitempty"`
+	SipAddress   string `json:"sipAddress,omitempty"`
 	Created      string `json:"created,omitempty"`
 	LastActivity string `json:"lastActivity,omitempty"`
 	IsLocked     bool   `json:"isLocked,omitempty"`
@@ -48,7 +49,8 @@ func (r RoomService) Create(name string) (*Room, error) {
 }
 
 func (r RoomService) Get(id string) (*Room, error) {
-	req, err := r.Client.NewGetRequest("/rooms/" + id)
+	// for now, we're always returning the SIP address.
+	req, err := r.Client.NewGetRequest("/rooms/" + id + "?showSipAddress=true")
 	if err != nil {
 		return nil, err
 	}
