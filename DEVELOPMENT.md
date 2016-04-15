@@ -26,6 +26,18 @@ Add API key to .goxc.local.json
 
     goxc bintray
 
+Configuration for bintray plugin is in .goxc.yml.  API key is in 
+.goxc.local.yml (not checked in!).  Format:
+
+    {
+	"ConfigVersion": "0.9",
+	"TaskSettings": {
+		"bintray": {
+                "apikey": "5d1f300712a5da07b2f64109921cc0346622e14c"
+            }
+	}
+    }
+
 #  TODO
 
 * travis builds
