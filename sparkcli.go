@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/tdeckers/sparkcli/api"
@@ -217,7 +216,6 @@ func main() {
 								log.Fatal("Usage: sparkcli messages list <roomId>")
 							}
 						}
-
 						msgTxt := strings.Join(c.Args().Tail(), " ")
 						msgService := api.MessageService{Client: client}
 						msg, err := msgService.Create(id, msgTxt)
@@ -300,14 +298,19 @@ func main() {
 						peopleService := api.PeopleService{Client: client}
 						person, err := peopleService.Get(id)
 						if err != nil {
-							fmt.Println(err)
+							log.Fatalln(err)
 						} else {
-							jsonPerson, err := json.MarshalIndent(person, "", "  ")
-							if err != nil {
-								log.Fatal("Faild to convert person")
+							if jsonFlag {
+								util.PrintJson(person)
+							} else {
+								fmt.Printf("Id:      %s\n", person.Id)
+								fmt.Printf("Name:    %s\n", person.DisplayName)
+								for _, email := range person.Emails {
+									fmt.Printf("Email:   %s\n", email)
+								}
+								fmt.Printf("Avatar:  %s\n", person.Avatar)
+								fmt.Printf("Created: %s\n", person.Created)
 							}
-							fmt.Print(string(jsonPerson))
-
 						}
 
 					},
@@ -318,10 +321,12 @@ func main() {
 					Usage:   "list people",
 					Flags: []cli.Flag{
 						cli.StringFlag{
-							Name: "email",
+							Name:  "email, e",
+							Usage: "email to search for",
 						},
 						cli.StringFlag{
-							Name: "name",
+							Name:  "name, n",
+							Usage: "name to search for (startWith function)",
 						},
 					},
 					Action: func(c *cli.Context) {
@@ -330,10 +335,26 @@ func main() {
 						peopleService := api.PeopleService{Client: client}
 						people, err := peopleService.List(email, name)
 						if err != nil {
-							fmt.Println(err)
+							log.Fatalln(err)
 						} else {
-							for _, person := range *people {
-								fmt.Printf("%v (%v)\n", person.DisplayName, person.Emails[0])
+							if jsonFlag {
+								util.PrintJson(people)
+							} else {
+								for _, person := range *people {
+									fmt.Printf("%s:\n", person.Id)
+									fmt.Printf("   Name:    %s\n", person.DisplayName)
+									fmt.Printf("   Email:   ")
+									for i, email := range person.Emails {
+										if i == 0 {
+											fmt.Print(email)
+										} else {
+											fmt.Printf(", %s", email)
+										}
+									}
+									fmt.Println()
+									fmt.Printf("   Avatar:  %s\n", person.Avatar)
+									fmt.Printf("   Created: %s\n", person.Created)
+								}
 							}
 
 						}
@@ -352,28 +373,45 @@ func main() {
 					Usage:   "list memberships",
 					Flags: []cli.Flag{
 						cli.StringFlag{
-							Name: "room",
+							Name:  "room, r",
+							Usage: "search by room id",
 						},
 						cli.StringFlag{
-							Name: "personid",
+							Name:  "personid, p",
+							Usage: "filter by person id",
 						},
 						cli.StringFlag{
-							Name: "email",
+							Name:  "email, e",
+							Usage: "filter by email",
 						},
 					},
 					Action: func(c *cli.Context) {
 						roomId := c.String("room")
+						if roomId == "-" {
+							roomId = config.DefaultRoomId
+							if roomId == "" {
+								log.Println("No default room configured.")
+								log.Fatal("Usage: sparkcli memberships list -r <roomId>")
+							}
+						}
 						personId := c.String("personid")
 						personEmail := c.String("email")
 						memberService := api.MemberService{Client: client}
 						mss, err := memberService.List(roomId, personId, personEmail)
 						if err != nil {
-							fmt.Println(err)
+							log.Fatalln(err)
 						} else {
-							for _, ms := range *mss {
-								fmt.Printf("%v: %v\n", ms.PersonEmail, ms.RoomId)
+							if jsonFlag {
+								util.PrintJson(mss)
+							} else {
+								for _, ms := range *mss {
+									fmt.Printf("%s:\n", ms.Id)
+									fmt.Printf("   Name: %s\n", ms.PersonDisplayName)
+									fmt.Printf("   Email: %s\n", ms.PersonEmail)
+									fmt.Printf("   Room: %s\n", ms.RoomId)
+									fmt.Printf("   Created: %s\n", ms.Created)
+								}
 							}
-
 						}
 					},
 				},
@@ -383,29 +421,44 @@ func main() {
 					Usage:   "create memberships",
 					Flags: []cli.Flag{
 						cli.StringFlag{
-							Name: "room",
+							Name:  "room, r",
+							Usage: "room to add person to",
 						},
 						cli.StringFlag{
-							Name: "personid",
+							Name:  "personid, p",
+							Usage: "id of person to add",
 						},
 						cli.StringFlag{
-							Name: "email",
+							Name:  "email, e",
+							Usage: "email of person to add",
 						},
 					},
 					Action: func(c *cli.Context) {
 						roomId := c.String("room")
+						if roomId == "-" {
+							roomId = config.DefaultRoomId
+							if roomId == "" {
+								log.Println("No default room configured.")
+								log.Fatal("Usage: sparkcli memberships create -r <roomId> ...")
+							}
+						}
+
 						personId := c.String("personid")
 						personEmail := c.String("email")
 						memberService := api.MemberService{Client: client}
 						ms, err := memberService.Create(roomId, personId, personEmail)
 						if err != nil {
-							fmt.Println(err)
+							log.Fatalln(err)
 						} else {
-							jsonMs, err := json.MarshalIndent(ms, "", "  ")
-							if err != nil {
-								log.Fatal("Faild to convert membership")
+							if jsonFlag {
+								util.PrintJson(ms)
+							} else {
+								fmt.Printf("Id:      %s\n", ms.Id)
+								fmt.Printf("Name:    %s\n", ms.PersonDisplayName)
+								fmt.Printf("Email:   %s\n", ms.PersonEmail)
+								fmt.Printf("Room:    %s\n", ms.RoomId)
+								fmt.Printf("Created: %s\n", ms.Created)
 							}
-							fmt.Print(string(jsonMs))
 						}
 
 					},
@@ -422,14 +475,17 @@ func main() {
 						msService := api.MemberService{Client: client}
 						ms, err := msService.Get(id)
 						if err != nil {
-							fmt.Println(err)
-							os.Exit(-1)
+							log.Fatalln(err)
 						} else {
-							jsonMs, err := json.MarshalIndent(ms, "", "  ")
-							if err != nil {
-								log.Fatal("Failed to convert membership.")
+							if jsonFlag {
+								util.PrintJson(ms)
+							} else {
+								fmt.Printf("Id:      %s\n", ms.Id)
+								fmt.Printf("Name:    %s\n", ms.PersonDisplayName)
+								fmt.Printf("Email:   %s\n", ms.PersonEmail)
+								fmt.Printf("Room:    %s\n", ms.RoomId)
+								fmt.Printf("Created: %s\n", ms.Created)
 							}
-							fmt.Print(string(jsonMs))
 						}
 
 					},
@@ -440,27 +496,31 @@ func main() {
 					Usage:   "update membership",
 					Flags: []cli.Flag{
 						cli.BoolFlag{
-							Name: "mod",
+							Name:  "moderator, m",
+							Usage: "set moderator role for the membership",
 						},
 					},
 					Action: func(c *cli.Context) {
 						if c.NArg() != 1 {
-							log.Fatal("Usage: sparkcli memberships update -mod <id>")
+							log.Fatal("Usage: sparkcli memberships update -moderator <id>")
 						}
 						id := c.Args().Get(0)
 						// TODO: avoid doing update if flag is not present.
-						moderator := c.Bool("mod")
+						moderator := c.Bool("moderator")
 						msService := api.MemberService{Client: client}
 						ms, err := msService.Update(id, moderator)
 						if err != nil {
-							fmt.Print(err)
-							os.Exit(-1)
+							log.Fatalln(err)
 						} else {
-							jsonMs, err := json.MarshalIndent(ms, "", "  ")
-							if err != nil {
-								log.Fatal("Failed to convert membership.")
+							if jsonFlag {
+								util.PrintJson(ms)
+							} else {
+								fmt.Printf("Id:      %s\n", ms.Id)
+								fmt.Printf("Name:    %s\n", ms.PersonDisplayName)
+								fmt.Printf("Email:   %s\n", ms.PersonEmail)
+								fmt.Printf("Room:    %s\n", ms.RoomId)
+								fmt.Printf("Created: %s\n", ms.Created)
 							}
-							fmt.Print(string(jsonMs))
 						}
 					},
 				},
@@ -476,10 +536,11 @@ func main() {
 						msService := api.MemberService{Client: client}
 						err := msService.Delete(id)
 						if err != nil {
-							fmt.Print(err)
-							os.Exit(-1)
+							log.Fatalln(err)
 						} else {
-							fmt.Println("Membership deleted.")
+							if !jsonFlag {
+								fmt.Println("Membership deleted.")
+							}
 						}
 
 					},

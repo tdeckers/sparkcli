@@ -49,8 +49,8 @@ func GetConfiguration() *Configuration {
 }
 
 func (c *Configuration) Load() {
-	//configFile := findConfigFile()
-	log.Printf("Using configuration at %s\n", configFile)
+	// TODO:change this to log to stderr, actuall all logs to stderr?
+	//log.Printf("Using configuration at %s\n", configFile)
 
 	if _, err := toml.DecodeFile(configFile, &c); err != nil {
 		log.Fatalln("Failed to open file", err)
@@ -68,7 +68,7 @@ func (c *Configuration) Load() {
 		c.BaseUrl = baseUrl
 	}
 
-	log.Println("File loaded for " + c.ClientId)
+	//log.Println("File loaded for " + c.ClientId)
 }
 
 // TODO: support -c property?

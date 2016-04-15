@@ -157,6 +157,81 @@ Delete a message
 
 > Deletes a messages.
 
+## People
+
+Get people details
+
+    sparkcli people get <id>
+    sparkcli p g <id>
+    
+    # get your details
+    sparkcli people get
+    sparkcli people get me
+
+> Gets people details.  If no id is provided, or if _me_ is provided, then your
+> own account details are returned.
+
+List people
+
+    sparkcli people list -email <email> -name <name>
+    sparkcli p l -e <email> -n <name>
+
+> List people that match email or name (startsWith). You must provide one of the
+> two options.
+
+# Membership
+
+List memberships
+
+    sparkcli memberships list -room <room id> -personid <person id> -email <email>
+    sparkcli m l -r <room id> -p <person id> -e <email>
+    
+    # list rooms you're subscribed to (no params needed)
+    sparkcli membership list
+    
+    # list members of a room
+    sparkcli membership list -r <room id>
+    
+    # list members of the default room (from config)
+    sparkcli membership list -r -
+    
+    # Check membership for a person in a room
+    sparkcli membership list -r <room id> -email <email>
+    sparkcli membership list -r <room id> -p <person id>
+
+> List membership information. See examples for usage details.
+
+Create a membership
+
+    sparkcli memberships create -room <room id> -personid <person id> -email <email>
+    sparkcli m c -r <room id> -p <person id> -e <email>
+    
+    # Create membership for the default room
+    sparkcli membership create -r - -e <email>
+
+> Create a membership for the person (specify either id or email) to the room
+
+Get membership details
+
+    sparkcli memberships get <id>
+
+> Returns details for the membership.
+
+Update membership
+
+    sparkcli memberships update -moderator=true|false <id>
+    sparkcli m u -m=true|false <id>
+
+> Update membership. At this point only the moderator value of a membership can
+> be updated.
+
+Delete membership
+
+    sparkcli memberships delete <id>
+    sparkcli m d <id>
+
+> Delete membership.
+
 ## Other
 
 Login

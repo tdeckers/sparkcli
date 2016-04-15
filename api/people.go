@@ -40,6 +40,7 @@ func (p PeopleService) List(email string, displayName string) (*[]People, error)
 	if email != "" {
 		v.Add("email", email)
 	}
+	// TODO: check searching by name, doesn't seem to always work?!
 	if displayName != "" {
 		v.Add("displayName", displayName)
 	}

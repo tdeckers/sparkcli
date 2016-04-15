@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"github.com/tdeckers/sparkcli/util"
+	"net/url"
 )
 
 type MemberService struct {
@@ -25,15 +26,17 @@ type MembershipItems struct {
 }
 
 func (m MemberService) List(roomId string, personId string, personEmail string) (*[]Membership, error) {
-	url := "/memberships"
+	v := url.Values{}
 	if roomId != "" {
-		url += "?roomId=" + roomId
-	} else if personId != "" {
-		url += "?personId=" + personId
-	} else if personEmail != "" {
-		url += "?personEmail=" + personEmail
+		v.Add("roomId", roomId)
 	}
-	req, err := m.Client.NewGetRequest(url)
+	if personId != "" {
+		v.Add("personId", personId)
+	}
+	if personEmail != "" {
+		v.Add("personEmail", personEmail)
+	}
+	req, err := m.Client.NewGetRequest("/memberships?" + v.Encode())
 	if err != nil {
 		return nil, err
 	}
