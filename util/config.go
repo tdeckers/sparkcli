@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"os/user"
+	"errors"
 )
 
 const (
@@ -113,16 +114,25 @@ func (c Configuration) Save() {
 	w.Flush()
 }
 
-func (c Configuration) checkConfAuth() {
+func (c Configuration) checkClientConfig() error {
 	if c.ClientId == "" {
-		log.Fatalln("ClientId not configured")
+		return errors.New("ClientId not configured")
 	}
 	if c.ClientSecret == "" {
-		log.Fatalln("ClientSecret not configured")
+		return errors.New("ClientSecret not configured")
 	}
 	if c.AuthCode == "" {
 		c.PrintAuthUrl()
-		log.Fatalln("AuthCode not configured")
+		return errors.New("AuthCode not configured")
+	}
+	return nil
+}
+
+func (c Configuration) checkAccessToken() bool {
+	if c.AccessToken == "" {
+		return false
+	} else {
+		return true
 	}
 }
 

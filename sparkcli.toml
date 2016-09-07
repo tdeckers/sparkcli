@@ -1,4 +1,2 @@
-ClientId = "<client id obtained from developer.ciscospark.com>"
-ClientSecret = "<client secret obtained from developer.ciscospark.com>"
-AuthCode = "<auth code obtained by logging in - see README.md for details>"
-DefaultRoomId = "<default room id>"
+AccessToken = "NzIxMzZkMzYtODQ2MS00YWFkLWIzNjUtYTg0NWZmYmEzOTU5MzJmM2NhZDYtMWM1"
+DefaultRoomId = "Y2lzY29zcGFyazovL3VzL1JPT00vMTRjNjE3ZjAtZmJlNC0xMWU1LWJlN2YtOGZmOTNiYmVkZGQ5"

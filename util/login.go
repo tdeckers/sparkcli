@@ -27,20 +27,28 @@ func NewLogin(config *Configuration, client *Client) Login {
 }
 
 func (l Login) Authorize() {
-	// Check if credentials are set.
-	l.config.checkConfAuth()
-
-	// if tokens exist, try them.
-	if l.config.AccessToken != "" && l.config.RefreshToken != "" {
+	// Check if AccessToken is present
+	tokenPresent := l.config.checkAccessToken()
+	if (tokenPresent) {
+		// Verify if token works.
 		err := l.test()
-		// TODO: what is another error than 401 pops up? Find way to detect 401 here.
-		if err == nil {
-			log.Println("Already logged in.")
-			return
+		if err != nil {
+			l.loginAsIntegration()
+		} else { // Success!
+			return 
 		}
-		log.Printf("Error: %s", err)
-
+	} else { // AccessToken not present
+		l.loginAsIntegration()
 	}
+}
+
+func (l Login) loginAsIntegration() {
+	// Check if client credentials are set.
+	err := l.config.checkClientConfig()
+	if err != nil { // If client credentials are not set...
+		log.Fatalf("Not configured properly: %s", err)
+	}
+	// client credentials properly set, let's continue.
 
 	log.Println("Authorizing...")
 	// Post form to obtain access token based on authorization code (OAuth)
@@ -76,6 +84,7 @@ func (l Login) Authorize() {
 	log.Printf("Refresh token: %s", tokens.RefreshToken)
 
 	l.storeToken(tokens)
+
 }
 
 func (l Login) RefreshToken() {

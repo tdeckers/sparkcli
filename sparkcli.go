@@ -19,7 +19,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "sparkcli"
 	app.Usage = "Command Line Interface for Cisco Spark"
-	app.Version = "0.5.0"
+	app.Version = "0.6.0"
 	app.Flags = []cli.Flag{
 		cli.BoolTFlag{
 			Name:        "j",
