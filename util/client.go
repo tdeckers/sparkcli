@@ -78,7 +78,9 @@ func (c *Client) NewDeleteRequest(path string) (*http.Request, error) {
 }
 
 func (c *Client) Do(req *http.Request, to interface{}) (*http.Response, error) {
+	var res *http.Response
 	res, err := c.client.Do(req)
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,6 +89,9 @@ func (c *Client) Do(req *http.Request, to interface{}) (*http.Response, error) {
 	if res.StatusCode == 401 {
 		login := Login{config: c.config, client: c}
 		login.RefreshToken()
+		// Update the request with new AccessToken.
+		req.Header.Set("Authorization", "Bearer "+c.config.AccessToken)
+
 		res, err = c.client.Do(req)
 		if err != nil {
 			return nil, err

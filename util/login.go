@@ -65,9 +65,8 @@ func (l Login) loginAsIntegration() {
 
 	// if 401, reauthorize? or refresh key.
 	if res.StatusCode == 401 {
-		log.Print("Unauthorized (401)")
-		l.config.PrintAuthUrl()
-		os.Exit(1)
+		log.Print("Unauthorized (401) - trying to refresh token")
+		l.RefreshToken();
 	} else if res.StatusCode != 200 {
 		log.Fatal("Unexpected status code ", res.StatusCode)
 	}
@@ -83,8 +82,7 @@ func (l Login) loginAsIntegration() {
 	log.Printf("Access token: %s", tokens.AccessToken)
 	log.Printf("Refresh token: %s", tokens.RefreshToken)
 
-	l.storeToken(tokens)
-
+	l.storeToken(tokens, false)
 }
 
 func (l Login) RefreshToken() {
@@ -94,7 +92,7 @@ func (l Login) RefreshToken() {
 		url.Values{"grant_type": {"refresh_token"},
 			"client_id":     {l.config.ClientId},
 			"client_secret": {l.config.ClientSecret},
-			"refresh_token": {l.config.AuthCode}})
+			"refresh_token": {l.config.RefreshToken}})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -117,18 +115,24 @@ func (l Login) RefreshToken() {
 		log.Fatalf("Failed to decode: %s", err)
 	}
 
-	l.storeToken(tokens)
+	l.storeToken(tokens, true)
+
+	log.Printf("Successfully refreshed token.")
 }
 
-func (l Login) storeToken(tokens *Tokens) {
+func (l Login) storeToken(tokens *Tokens, refresh bool) {
 
 	// http://blog.golang.org/json-and-go#TOC_5.
 	l.config.AccessToken = tokens.AccessToken
 	// typically 14 days
 	l.config.AccessExpires = tokens.AccessExpires
-	l.config.RefreshToken = tokens.RefreshToken
-	// typically 90 days
-	l.config.RefreshExpires = tokens.RefreshExpires
+	// A refresh doesn't repeat the refresh token, so let's not
+	// overwrite with an empty value here!
+	if !refresh { 
+		l.config.RefreshToken = tokens.RefreshToken
+		// typically 90 days
+		l.config.RefreshExpires = tokens.RefreshExpires
+	}
 	log.Println("Saving config")
 	l.config.Save()
 

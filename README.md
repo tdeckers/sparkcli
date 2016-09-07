@@ -2,13 +2,46 @@
 
 # Overview
 
-sparkcli (say 'sparkly' :) is a command line interface to Cisco Spark.
+`sparkcli` (say 'sparkly' :) is a command line interface to Cisco Spark.
 
 # Setup - Configuration
 
+There are two ways to provide `sparkcli` with credentials:
+
+* [OAuth integration](https://developer.ciscospark.com/authentication.html)
+* [Bot account](https://developer.ciscospark.com/bots.html)
+
+Using a bot account is the simplest to setup.  Check the [Cisco Spark docs](https://developer.ciscospark.com/bots.html) for more details on the difference between the two.
+Both mechanisms are explained, when in doubt or unsure, go for the Bot account option.
+
+## Option 1: Use a bot account
+
+**1. Obtain a Cisco Spark bot account token**
+
+Define a new Cisco Spark bot account here: [https://developer.ciscospark.com](https://developer.ciscospark.com/apps.html).  Make sure to select the Bot option on this page.  Fill in the fields as desired.  For app icon, feel free to use `http://files.ducbase.com/spark.png`
+
+**2. Configure**
+
+Create a configuration file called `sparkcli.toml`.  This file is in 
+[toml format](https://godoc.org/github.com/BurntSushi/toml).  Sparkcli will look for the 
+file in these locations (in order):
+
+* current working directory
+* `/etc/sparkcli`
+* users' home directory
+
+Add the `AccessToken` to the file:
+
+    # cat /etc/sparkcli/sparkcli.toml
+    AccessToken = "NzIxMzZkMzYtODQ22S00YqFkLWIzNjUtYTg2NWZmYmEz12d5MzJmM2NhZDYtMWM1"
+
+And you're done!  Skip down to the usage section for more.
+
+## Option 2: Use OAuth integration
+
 **1. Obtain a Cisco Spark developer API key and secret**
 
-Define a new Cisco Spark integration app here: [https://developer.ciscospark.com](https://developer.ciscospark.com/).  Fill in the fields as desired, with the exception of:
+Define a new Cisco Spark integration app here: [https://developer.ciscospark.com](https://developer.ciscospark.com/apps.html).  Make sure to select the Integration option.  Fill in the fields as desired, with the exception of:
    
 * App icon: Feel free to use `http://files.ducbase.com/spark.png` or use your own.
 * Redirect Url: `http://files.ducbase.com/code.html`.
@@ -17,13 +50,9 @@ Define a new Cisco Spark integration app here: [https://developer.ciscospark.com
 You'll be provided with a `ClientID` and `ClientSecret`.  You'll need these for the 
    next step.
 
-**2. Authorize**
+Next navigate to the 'OAuth Authorization URL' to obtain an `AuthCode`.
 
-Navige to the [Sparkcli authorization](http://files.ducbase.com/authorize.html) page 
-and follow the instructions there.  Once you've obtained the authorization code
-continue here.
-
-**3. Configure**
+**2. Configure**
 
 Create a configuration file called `sparkcli.toml`.  This file is in 
 [toml format](https://godoc.org/github.com/BurntSushi/toml).  Sparkcli will look for the 
@@ -40,7 +69,7 @@ Add the `ClientID`, `ClientSecret` and the `AuthCode` from the previous steps in
     ClientSecret = "dcca20a5b5cc89fbea1f2b3cd41x80248ff698277583bce69fa63923ef02dc64"
     AuthCode = "46cd20fe32936af96ecb385772896ff84208x14dc3b2f1aebf98cc5b5a02accd"
 
-**4. Login**
+**3. Login**
 
 Download a copy of sparkcli:  [ ![Download](https://api.bintray.com/packages/tdeckers/sparkcli/sparkcli/images/download.svg) ](https://bintray.com/tdeckers/sparkcli/sparkcli/_latestVersion).
 Then run
