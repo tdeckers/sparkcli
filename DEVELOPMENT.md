@@ -10,7 +10,7 @@ Build and deploy using goxc: [See here.](https://github.com/laher/goxc/blob/mast
     ./all.bash
     go get golang.org/x/tools/cmd/...
 
-## Install goxc
+## Install goxc`
 
     go install github.com/laher/goxc
 
@@ -43,3 +43,4 @@ Configuration for bintray plugin is in .goxc.yml.  API key is in
 * travis builds
 * gocover.io
 * godoc creation
+* unit testing - [gotests](https://github.com/cweill/gotests)

@@ -9,12 +9,14 @@ import (
 	"os"
 )
 
+// Login allows authorization against the Cisco Spark service.
+// It supports both bot and integration accounts.
 type Login struct {
-	// TODO: should this be a pointer (reference)?
 	config *Configuration
 	client *Client
 }
 
+// Tokens is used to parse responses from access token requests
 type Tokens struct {
 	AccessToken    string  `json:"access_token"`
 	AccessExpires  float64 `json:"expires_in"`
@@ -22,26 +24,37 @@ type Tokens struct {
 	RefreshExpires float64 `json:"refresh_token_expires_in"`
 }
 
+// NewLogin creates a new Login and initializes it.
 func NewLogin(config *Configuration, client *Client) Login {
 	return Login{config: config, client: client}
 }
 
+// Authorize will verify is proper a proper access token is available.  If not
+// it will attempt to use the OAuth integration flow. to obtain an access token
+// based on the provided ClientId, ClientSecret and AuthCode in the
+// configuration.
 func (l Login) Authorize() {
 	// Check if AccessToken is present
 	tokenPresent := l.config.checkAccessToken()
-	if (tokenPresent) {
+	if tokenPresent {
 		// Verify if token works.
 		err := l.test()
 		if err != nil {
 			l.loginAsIntegration()
 		} else { // Success!
-			return 
+			return
 		}
 	} else { // AccessToken not present
 		l.loginAsIntegration()
 	}
 }
 
+// loginAsIntegration implements the OAuth grant flow for integration accouns.
+// it expects a configuration file to be available with ClientId, ClientSecret
+// and AuthCode set.
+// On successful authentication it will store the AccessToken and RefreshToken
+// in the configuration file for further use.  On failure it will exit the
+// program.
 func (l Login) loginAsIntegration() {
 	// Check if client credentials are set.
 	err := l.config.checkClientConfig()
@@ -66,7 +79,7 @@ func (l Login) loginAsIntegration() {
 	// if 401, reauthorize? or refresh key.
 	if res.StatusCode == 401 {
 		log.Print("Unauthorized (401) - trying to refresh token")
-		l.RefreshToken();
+		l.RefreshToken()
 	} else if res.StatusCode != 200 {
 		log.Fatal("Unexpected status code ", res.StatusCode)
 	}
@@ -85,6 +98,11 @@ func (l Login) loginAsIntegration() {
 	l.storeToken(tokens, false)
 }
 
+// RefreshToken uses the ClientId, ClientSecret and RefreshToken from the
+// configuration file and attempt to obtain a new access token.
+// On success, the new AccessToken is written into the configuration
+// file.  The RefreshToken remains the same, its expiry is reset.
+// Note that sparkcli doesn't track token expiry.
 func (l Login) RefreshToken() {
 	log.Print("Refreshing token...")
 	// Post form to obtain access token based on refresh token (OAuth)
@@ -120,6 +138,9 @@ func (l Login) RefreshToken() {
 	log.Printf("Successfully refreshed token.")
 }
 
+// storeToken writes tokens to the configuration file.  When refresh
+// is true, it will not overwrite RefreshToken and RefreshExpires (since
+// these will be empty during refresh)
 func (l Login) storeToken(tokens *Tokens, refresh bool) {
 
 	// http://blog.golang.org/json-and-go#TOC_5.
@@ -128,7 +149,7 @@ func (l Login) storeToken(tokens *Tokens, refresh bool) {
 	l.config.AccessExpires = tokens.AccessExpires
 	// A refresh doesn't repeat the refresh token, so let's not
 	// overwrite with an empty value here!
-	if !refresh { 
+	if !refresh {
 		l.config.RefreshToken = tokens.RefreshToken
 		// typically 90 days
 		l.config.RefreshExpires = tokens.RefreshExpires
@@ -138,6 +159,8 @@ func (l Login) storeToken(tokens *Tokens, refresh bool) {
 
 }
 
+// test access to the Cisco Spark service to ensure authentication works as
+// expected.  Returns an error if the service request fails.
 func (l Login) test() error {
 	req, err := l.client.NewGetRequest("/people/me")
 	if err != nil {

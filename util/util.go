@@ -1,3 +1,4 @@
+// Various utilities in support on sparkcli
 package util
 
 import (
@@ -5,6 +6,7 @@ import (
 	"fmt"
 )
 
+// PrintJson prints v with proper indents
 func PrintJson(v interface{}) error {
 	jsonMsg, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
