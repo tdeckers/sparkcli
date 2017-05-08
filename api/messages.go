@@ -69,6 +69,29 @@ func (m MessageService) Create(roomId string, txt string) (*Message, error) {
 	return &result, nil
 }
 
+func (m MessageService) CreateFile(roomId string, file string) (*Message, error) {
+	// Check for default roomId
+	config := util.GetConfiguration()
+	if roomId == "-" {
+		if config.DefaultRoomId != "" {
+			roomId = config.DefaultRoomId
+		} else {
+			return nil, errors.New("No DefaultRoomId configured.")
+		}
+	}
+
+	req, err := m.Client.NewFilePostRequest("/messages", roomId, file)
+	if err != nil {
+		return nil, err
+	}
+	var result Message
+	_, err = m.Client.Do(req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 func (m MessageService) Get(id string) (*Message, error) {
 	if id == "" {
 		return nil, errors.New("id can't be empty when getting message")
