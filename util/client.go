@@ -8,6 +8,10 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
+	"mime/multipart"
+	"path/filepath"
+	"io"
 )
 
 const (
@@ -61,6 +65,41 @@ func (c *Client) NewRequest(method string, path string, body interface{}) (*http
 	return req, nil
 }
 
+func (c *Client) NewFileUploadRequest(path string, roomId string, fileLocation string) (*http.Request, error) {
+	// concat base url and request url
+	reqUrl, err := url.Parse(c.config.BaseUrl + path)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := os.Open(fileLocation)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("files", filepath.Base(fileLocation))
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(part, file)
+	_ = writer.WriteField("roomId", roomId)
+
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", reqUrl.String(), body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	// Add other headers (that apply to all requests)
+	req.Header.Set("Authorization", "Bearer "+c.config.AccessToken)
+	return req, nil
+}
+
 func (c *Client) NewGetRequest(path string) (*http.Request, error) {
 	return c.NewRequest("GET", path, nil)
 }
@@ -75,6 +114,10 @@ func (c *Client) NewPutRequest(path string, body interface{}) (*http.Request, er
 
 func (c *Client) NewDeleteRequest(path string) (*http.Request, error) {
 	return c.NewRequest("DELETE", path, nil)
+}
+
+func (c *Client) NewFilePostRequest(path string, roomId string, fileLocation string) (*http.Request, error) {
+	return c.NewFileUploadRequest(path, roomId, fileLocation)
 }
 
 func (c *Client) Do(req *http.Request, to interface{}) (*http.Response, error) {
