@@ -1,3 +1,4 @@
+// Package main provides the main entry point for sparkcli.
 package main
 
 import (
@@ -10,6 +11,7 @@ import (
 	"strings"
 )
 
+//
 func main() {
 	var jsonFlag bool
 

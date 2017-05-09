@@ -10,6 +10,7 @@ type PeopleService struct {
 	Client *util.Client
 }
 
+// People data structure
 type People struct {
 	Id          string   `json:"id,omitempty"`
 	Emails      []string `json:"emails,omitempty"`
