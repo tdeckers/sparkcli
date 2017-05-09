@@ -203,31 +203,66 @@ func main() {
 					Name:    "create",
 					Aliases: []string{"c"},
 					Usage:   "create a new message",
-					Action: func(c *cli.Context) {
-						// TODO: change this to take all args after the second as additional text.
-						if c.NArg() < 1 {
-							log.Fatal("Usage: sparkcli messages create <room> <msg>")
-						}
-						id := c.Args().Get(0)
-						if id == "-" {
-							id = config.DefaultRoomId
-							if id == "" {
-								log.Println("No default room configured.")
-								log.Fatal("Usage: sparkcli messages list <roomId>")
-							}
-						}
-						msgTxt := strings.Join(c.Args().Tail(), " ")
-						msgService := api.MessageService{Client: client}
-						msg, err := msgService.Create(id, msgTxt)
-						if err != nil {
-							log.Fatalln(err)
-						} else {
-							if jsonFlag {
-								util.PrintJson(msg)
-							} else {
-								fmt.Print(msg.Id)
-							}
-						}
+					Subcommands: []cli.Command{
+						{
+							Name:  "text",
+							Usage: "create a new text message",
+							Action: func(c *cli.Context) {
+								// TODO: change this to take all args after the second as additional text.
+								if c.NArg() < 1 {
+									log.Fatal("Usage: sparkcli messages create text <room> <msg>")
+								}
+								id := c.Args().Get(0)
+								if id == "-" {
+									id = config.DefaultRoomId
+									if id == "" {
+										log.Println("No default room configured.")
+										log.Fatal("Usage: sparkcli messages list <roomId>")
+									}
+								}
+								msgTxt := strings.Join(c.Args().Tail(), " ")
+								msgService := api.MessageService{Client: client}
+								msg, err := msgService.Create(id, msgTxt)
+								if err != nil {
+									log.Fatalln(err)
+								} else {
+									if jsonFlag {
+										util.PrintJson(msg)
+									} else {
+										fmt.Print(msg.Id)
+									}
+								}
+							},
+						},
+						{
+							Name:  "file",
+							Usage: "send a attachment",
+							Action: func(c *cli.Context) {
+								if c.NArg() < 1 {
+									log.Fatal("Usage: sparkcli messages create file <room> <file>")
+								}
+								id := c.Args().Get(0)
+								if id == "-" {
+									id = config.DefaultRoomId
+									if id == "" {
+										log.Println("No default room configured.")
+										log.Fatal("Usage: sparkcli messages list <roomId>")
+									}
+								}
+								filePath := strings.Join(c.Args().Tail(), " ")
+								msgService := api.MessageService{Client: client}
+								msg, err := msgService.CreateFile(id, filePath)
+								if err != nil {
+									log.Fatalln(err)
+								} else {
+									if jsonFlag {
+										util.PrintJson(msg)
+									} else {
+										fmt.Print(msg.Id)
+									}
+								}
+							},
+						},
 					},
 				},
 				{
