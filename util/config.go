@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"github.com/BurntSushi/toml"
 	"log"
 	"net/url"
 	"os"
 	"os/user"
+
+	"github.com/BurntSushi/toml"
 )
 
 const (
@@ -95,18 +96,19 @@ func (c *Configuration) Load() {
 // TODO: support -c property to specify the config location?
 func findConfigFile() string {
 	// Prepare list of directories
-	user, err := user.Current()
-	if err != nil {
-		// TODO: don't fail here, just skip locations that require the user.
-		log.Fatal(err)
-	}
-
 	wd, _ := os.Getwd()
 
 	paths := []string{
 		wd, // current working directory
 		"/etc/sparkcli",
-		user.HomeDir, // users' home directory
+	}
+
+	// if there is a current user (or HOME environment) then append that
+	user, err := user.Current()
+	if err == nil {
+		paths = append(paths, user.HomeDir)
+	} else if homedir := os.Getenv("HOME"); homedir != "" {
+		paths = append(paths, homedir)
 	}
 
 	for _, basepath := range paths {
